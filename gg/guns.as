@@ -23,7 +23,8 @@ namespace GunGame
 				CGunGameWeapon( "handcannon", 4 ),
 				CGunGameWeapon( "crossbow", 2 ),
 				CGunGameWeapon( "compbow", 2 ),
-				CGunGameWeapon( "grenade", 1 ),
+				CGunGameWeapon( "grenade", 4 ),
+				CGunGameWeapon( "flamethrower", 3 ),
 				CGunGameWeapon( "crowbar_green", 1 )
 			};
 		}
