@@ -82,6 +82,8 @@ namespace GunGame
 				int lvl_behind = leader_level - pPlayer.level;
 				if ( lvl_behind == 0 )
 					Chat.PrintToChat( all, "{azure}" + pTerrorPlayer.GetPlayerName() + " {green}is tied with the leader on level {default}" + pPlayer.CurrentLevel() );
+				else
+					GunGame::Player::CheckStatus( killer );
 			}
 		}
 		
