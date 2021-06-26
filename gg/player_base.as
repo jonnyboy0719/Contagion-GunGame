@@ -33,7 +33,6 @@ class CGunGamePlayer
 	void KilledByMelee()
 	{
 		kills = 0;
-		int curlevel = level;
 		OnKilledPlayer(true, false);
 	}
 
