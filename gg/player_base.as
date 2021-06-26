@@ -56,11 +56,21 @@ class CGunGamePlayer
 			}
 			return;
 		}
+		// Steal their level!
 		if ( melee )
-			kills += 2;
+			kills += 99;
 		else
 			kills++;
 		CTerrorPlayer@ pTerrorPlayer = ToTerrorPlayer( PlayerIndex );
+		CBasePlayer@ pBasePlayer = pTerrorPlayer.opCast();
+		pTerrorPlayer.AddScore( melee ? 2 : 1 );
+		if ( GunGame::Cvars::HealthOnKill() )
+		{
+			CBaseEntity@ pEntityPlayer = pBasePlayer.opCast();
+			int iHealthMax = pEntityPlayer.GetMaxHealth();
+			int iHealth = pEntityPlayer.GetHealth() + GunGame::Cvars::HealthAmount();
+			pEntityPlayer.SetHealth( Math::clamp( iHealth, 0, iHealthMax ) );
+		}
 		string szKillMsg;
 		int kills_needed = GunGame::Guns::GetNeededKills( level ) - kills;
 		if ( kills_needed > 1 )
@@ -72,7 +82,6 @@ class CGunGamePlayer
 			CalculateNextLevel();
 			return;
 		}
-		CBasePlayer@ pBasePlayer = pTerrorPlayer.opCast();
 		Chat.PrintToChat( pBasePlayer, "{green}You need " + kills_needed + " " + szKillMsg + " to advance to the next level. Level :: {default}" + CurrentLevel() + " {green} / {default}" + GunGame::Guns::GetMaxWeaponLevels() );
 	}
 

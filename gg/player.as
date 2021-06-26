@@ -46,6 +46,8 @@ namespace GunGame
 		
 		void KilledPlayer( int victim, int attacker, int flags )
 		{
+			// We died, remove the glow!
+			GunGame::RemoveGlow( gg_players[victim] );
 			// Our victim was killed with a melee?
 			bool bMelee = false;
 			if ( HasDMGFlag( flags, DMG_CLUB ) || HasDMGFlag( flags, DMG_SLASH ) )

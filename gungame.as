@@ -1,5 +1,6 @@
 #include "gg/music.as"
 #include "gg/core.as"
+#include "gg/core_cvars.as"
 #include "gg/guns.as"
 #include "gg/player.as"
 
@@ -17,6 +18,8 @@ void OnPluginInit()
 	PluginData::SetVersion( "1.0" );
 	PluginData::SetAuthor( "JonnyBoy0719" );
 	PluginData::SetName( "GunGame" );
+
+	GunGame::Cvars::Init();
 
 	HuntedDMSetup();
 	SetSomeGameRules();
@@ -59,6 +62,7 @@ void HuntedDMSetup()
 {
 	ThePresident::Hunted::SetDeathmatch( true );
 	ThePresident.OverrideWeaponFastSwitch( true );
+	ThePresident.IgnoreDefaultScoring( true );
 }
 
 //------------------------------------------------------------------------------------------------------------------------//
@@ -96,6 +100,7 @@ HookReturnCode OnPlayerSpawn_GG(CTerrorPlayer@ pPlayer)
 	{
 		DropWeapons( pPlayer );
 		GunGame::Player::Spawned( pBase.entindex() );
+		GunGame::SetGlowIfLeader( pBase.entindex() );
 	}
 	return HOOK_CONTINUE;
 }
@@ -230,6 +235,7 @@ void ThePresident_OnMapStart()
 void OnPluginUnload()
 {
 	Engine.EnableCustomSettings( false );
+	GunGame::Cvars::OnUnload();
 }
 
 //------------------------------------------------------------------------------------------------------------------------//
