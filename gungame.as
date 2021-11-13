@@ -33,6 +33,7 @@ void OnPluginInit()
 	Events::Player::OnPlayerSpawn.Hook( @OnPlayerSpawn_GG );
 	Events::Player::OnPlayerKilled.Hook( @OnPlayerKilled_GG );
 	Events::Player::OnConCommand.Hook( @OnConCommand_GG );
+	Events::Player::PlayerSay.Hook( @PlayerSay_GG );
 	Events::Player::OnEntityDropped.Hook( @OnEntityDropped_GG );
 	
 	Events::Infected::OnInfectedSpawned.Hook( @OnInfectedSpawned_GG );
@@ -46,6 +47,7 @@ void OnPluginInit()
 void OnProcessRound()
 {
 	GunGame::CheckWinner();
+	GunGame::GrenadeFix();
 }
 
 //------------------------------------------------------------------------------------------------------------------------//
@@ -63,6 +65,7 @@ void HuntedDMSetup()
 	ThePresident::Hunted::SetDeathmatch( true );
 	ThePresident.OverrideWeaponFastSwitch( true );
 	ThePresident.IgnoreDefaultScoring( true );
+	Engine.RunConsoleCommand( "mp_roundlimit 1" );
 }
 
 //------------------------------------------------------------------------------------------------------------------------//
@@ -154,6 +157,22 @@ HookReturnCode OnConCommand_GG( CTerrorPlayer@ pPlayer, CASCommand@ pArgs )
 	string arg1 = pArgs.Arg( 0 );
 	CBasePlayer@ pBasePlayer = pPlayer.opCast();
 	if ( Utils.StrEql( arg1, "drop" ) ) return HOOK_HANDLED;
+	if ( Utils.StrEql( arg1, "drop_attachment" ) ) return HOOK_HANDLED;
+	return HOOK_CONTINUE;
+}
+
+//------------------------------------------------------------------------------------------------------------------------//
+
+HookReturnCode PlayerSay_GG( CTerrorPlayer@ pPlayer, CASCommand@ pArgs )
+{
+	string arg1 = pArgs.Arg( 1 );
+	CBaseEntity @pBase = ToBaseEntity( pPlayer );
+	CBasePlayer@ pBasePlayer = pPlayer.opCast();
+	if ( Utils.StrEql( arg1, "!level" ) )
+	{
+		GunGame::Player::CheckStatus( pBase.entindex(), true );
+		return HOOK_HANDLED;
+	}
 	return HOOK_CONTINUE;
 }
 
@@ -173,6 +192,8 @@ void DropWeapons(CTerrorPlayer@ pPlayer)
 void SetNewSpeed( Infected@ pInfected )
 {
 	if ( pInfected is null ) return;
+
+	// If 2012 mod is found, then use that instead.
 	CNetworked@ pNetworked = Network::Get( "2012mod" );
 	if ( pNetworked !is null )
 	{

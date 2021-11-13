@@ -50,12 +50,32 @@ namespace GunGame
 			GunGame::RemoveGlow( gg_players[victim] );
 			// Our victim was killed with a melee?
 			bool bMelee = false;
+			// Check if our player is valid
+			CTerrorPlayer @pTerror = ToTerrorPlayer( victim );
+			if ( pTerror !is null )
+			{
+				// If our player got a grenade, drop it!
+				if ( pTerror.GetWeaponSlot( "weapon_grenade" ) != -1 )
+					CreateGrenadeOnDeath( pTerror );
+			}
 			if ( HasDMGFlag( flags, DMG_CLUB ) || HasDMGFlag( flags, DMG_SLASH ) )
 			{
 				CGunGamePlayer@ pGGPlayer = gg_players[victim];
 				if ( pGGPlayer !is null )
+				{
 					pGGPlayer.KilledByMelee();
-				bMelee = true;
+					// If the victim got melee'd, make sure both the killer and victim is valid
+					if ( pGGPlayer.CurrentLevel() > 1 )
+					{
+						bMelee = true;
+						CTerrorPlayer @pTerrorKiller = ToTerrorPlayer( attacker );
+						if ( pTerrorKiller !is null )
+						{
+							CBasePlayer@ pBasePlayer = pTerrorKiller.opCast();
+							Chat.PrintToChat( pBasePlayer, "{azure}You stole a level from {green}" + pTerror.GetPlayerName() + "{default}!" );
+						}
+					}
+				}
 			}
 			bool bSelfKill = false;
 			if ( victim == attacker )
@@ -64,7 +84,16 @@ namespace GunGame
 			if ( pGGPlayer is null ) return;
 			pGGPlayer.OnKilledPlayer(bSelfKill, bMelee);
 		}
-		
+
+		void CreateGrenadeOnDeath( CTerrorPlayer @pTerror )
+		{
+			CBaseEntity @pBase = ToBaseEntity( pTerror );
+			Vector vPos = pBase.GetAbsOrigin();
+			vPos += Vector( 0, 0, 8 );
+			QAngle vAng = pBase.GetAbsAngles();
+			Utils.SpawnGrenade( pTerror, vPos, Vector(), vAng, 2.0f );
+		}
+
 		void AnnounceKiller( int killer )
 		{
 			if ( CheckForNewLeader( gg_players[killer] ) ) return;
@@ -85,27 +114,88 @@ namespace GunGame
 				if ( lvl_behind == 0 )
 					Chat.PrintToChat( all, "{azure}" + pTerrorPlayer.GetPlayerName() + " {green}is tied with the leader on level {default}" + pPlayer.CurrentLevel() );
 				else
-					GunGame::Player::CheckStatus( killer );
+					GunGame::Player::CheckStatus( killer, false );
 			}
 		}
-		
-		void CheckStatus( int player )
+
+		string GetSuffix( int n )
 		{
+			if ( n % 100 == 11 || n % 100 == 12 || n % 100 == 13 )
+				return "{azure}" + n + "th";
+			else
+			{
+				if ( n % 10 == 1 )
+					return "{green}" + n + "st";
+				else
+				{
+					if ( n % 10 == 2 )
+						return "{orange}" + n + "nd";
+					else
+					{
+						if ( n % 10 == 3 )
+							return "{yellow}" + n + "rd";
+						else
+						{
+							if ( n % 10 == 4 || n % 10 == 5 || n % 10 == 6 || n % 10 == 7 || n % 10 == 8 || n % 10 == 9 || n % 10 == 0 )
+								return "{azure}" + n + "th";
+						}
+					}
+				}
+			}
+			return "{azure}" + n;
+		}
+
+		void CheckStatus( int player, bool fromcommand )
+		{
+			CTerrorPlayer@ pTerrorPlayer = ToTerrorPlayer( player );
+			CBasePlayer@ pBasePlayer = pTerrorPlayer.opCast();
 			CGunGamePlayer @pPlayer = gg_players[player];
 			CGunGamePlayer @pLeader = GunGame::GetLeader();
-			if ( pLeader is null ) return;
-			int leader_level = pLeader.level;
-			int lvl_behind = leader_level - pPlayer.level;
-			if ( lvl_behind > 0 )
+			if ( fromcommand )
 			{
-				CTerrorPlayer@ pTerrorPlayer = ToTerrorPlayer( player );
-				CBasePlayer@ pBasePlayer = pTerrorPlayer.opCast();
-				string szLevels;
-				if ( lvl_behind > 1 )
-					szLevels = "levels";
+				if ( pPlayer is null )
+				{
+					Chat.PrintToChat( pBasePlayer, "{azure}Player is invalid, and thus cannot display the status." );
+					return;
+				}
+				if ( pLeader is null )
+					@pLeader = pPlayer;
+
+				string szPosition = "{green}1st";
+				int leader_index = pLeader.PlayerIndex;
+				int leader_level = pLeader.level;
+				int lvl_behind = leader_level - pPlayer.level;
+				if ( lvl_behind > 0 )
+					szPosition = GetSuffix( lvl_behind+1 );
 				else
-					szLevels = "level";
-				Chat.PrintToChat( pBasePlayer, "{azure}You are {green}" + lvl_behind + " {azure}" + szLevels + " behind the leader!" );
+				{
+					if ( leader_index != player )
+						szPosition = "{gold}Tied";
+				}
+
+				int player_level = pPlayer.level;
+				int player_kills = pPlayer.kills;
+				Chat.PrintToChat(
+					pBasePlayer,
+					"{default}Position{white}: " + szPosition + "\n{default}Status{white}: {gold}" + player_kills + " {green}/ {gold}" + GunGame::Guns::GetNeededKills( player_level )
+				);
+			}
+			else
+			{
+				if ( pLeader !is null )
+				{
+					int leader_level = pLeader.level;
+					int lvl_behind = leader_level - pPlayer.level;
+					if ( lvl_behind > 0 )
+					{
+						string szLevels;
+						if ( lvl_behind > 1 )
+							szLevels = "levels";
+						else
+							szLevels = "level";
+						Chat.PrintToChat( pBasePlayer, "{azure}You are {green}" + lvl_behind + " {azure}" + szLevels + " behind the leader!" );
+					}
+				}
 			}
 		}
 	}

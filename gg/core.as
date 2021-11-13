@@ -41,6 +41,29 @@ namespace GunGame
 		ThePresident.ForceWinState( STATE_WIN );
 		iWinner = -1;
 	}
+	void GrenadeFix()
+	{
+		array<int> collector = Utils.CollectPlayers();
+		if ( collector.length() > 0 )
+		{
+			for ( uint i = 0; i < collector.length(); i++ )
+			{
+				// Make sure the player exist
+				CTerrorPlayer @pTerror = ToTerrorPlayer( i );
+				if ( pTerror is null ) continue;
+				// If it's a grenade, make sure we always have a grenade
+				CGunGamePlayer @pPlayer = @gg_players[i];
+				if ( pPlayer is null ) continue;
+				string szWeapon = GunGame::Guns::GetWeapon( pPlayer.level );
+				if ( Utils.StrEql( szWeapon, "grenade", false ) )
+				{
+					// If we found nothing, give a new grenade!
+					if ( pTerror.GetWeaponSlot( "weapon_grenade" ) == -1 )
+						pPlayer.GiveWeapons();
+				}
+			}
+		}
+	}
 	void SetWinner( int player ) { iWinner = player; }
 	bool CheckForNewLeader( CGunGamePlayer @pPlayer )
 	{
@@ -48,6 +71,8 @@ namespace GunGame
 		{
 			SetGlow( pPlayer );
 			@pLeader = pPlayer;
+			CTerrorPlayer@ pTerrorNewLeader = ToTerrorPlayer( pPlayer.PlayerIndex );
+			Chat.PrintToChat( all, "{green}" + pTerrorNewLeader.GetPlayerName() + " is now the new leader!" );
 			return false;
 		}
 		if ( pPlayer.PlayerIndex == pLeader.PlayerIndex ) return false;

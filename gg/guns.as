@@ -13,6 +13,7 @@ namespace GunGame
 				CGunGameWeapon( "m1garand", 3 ),
 				CGunGameWeapon( "sniper", 2 ),
 				CGunGameWeapon( "overunder", 4 ),
+				CGunGameWeapon( "doublebarrel", 4 ),
 				CGunGameWeapon( "autoshotgun", 5 ),
 				CGunGameWeapon( "remington870", 2 ),
 				CGunGameWeapon( "mossberg", 3 ),

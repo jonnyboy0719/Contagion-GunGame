@@ -33,6 +33,7 @@ class CGunGamePlayer
 	void KilledByMelee()
 	{
 		kills = 0;
+		int curlevel = level;
 		OnKilledPlayer(true, false);
 	}
 
@@ -52,6 +53,7 @@ class CGunGamePlayer
 				GunGame::Music::LevelDown( pTerrorPlayer );
 				CBasePlayer@ pBasePlayer = pTerrorPlayer.opCast();
 				Chat.PrintToChat( pBasePlayer, "{red}You lost a level!" );
+				GunGame::Player::AnnounceKiller( PlayerIndex );
 			}
 			return;
 		}
@@ -81,7 +83,7 @@ class CGunGamePlayer
 			CalculateNextLevel();
 			return;
 		}
-		Chat.PrintToChat( pBasePlayer, "{green}You need " + kills_needed + " " + szKillMsg + " to advance to the next level. Level :: {default}" + CurrentLevel() + " {green} / {default}" + GunGame::Guns::GetMaxWeaponLevels() );
+		Chat.PrintToChat( pBasePlayer, "{green}You need {gold}" + kills_needed + "{green} " + szKillMsg + " to advance to the next level. Level :: {default}" + CurrentLevel() + " {green} / {default}" + GunGame::Guns::GetMaxWeaponLevels() );
 	}
 
 	void CalculateNextLevel()
